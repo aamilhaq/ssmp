@@ -1,0 +1,57 @@
+#include <stdio.h>
+#include <string.h>
+
+#define MAX 100
+
+struct allocate {
+    char name[MAX];
+    int size;
+};
+
+int main() {
+    struct allocate seq[MAX];
+    int block, i = 0, bleft;
+    char ch = 'y';
+
+    printf("Enter the total number of blocks: ");
+    scanf("%d", &block);
+    bleft = block;
+
+    while(ch == 'y' || ch == 'Y') {
+        printf("Enter the name of the file: ");
+        scanf("%s", seq[i].name);
+        
+        printf("Enter the number of blocks required for the file: ");
+        scanf("%d", &seq[i].size);
+
+        if(seq[i].size > bleft) {
+            printf("Insufficient blocks, hence it cannot be allocated\n");
+        } else {
+            bleft -= seq[i].size;
+            i++;
+        }
+
+        printf("Do you want to enter more files? (Y/N): ");
+        scanf(" %c", &ch);  
+    }
+
+    int count = 0, g = 0, x = 0;
+
+    printf("\nFile Allocation Table:\n");
+    printf("File Name\tFile Size\tBlock Numbers\n");
+
+    while(count < i) {
+        printf("%s\t\t%d\t\t", seq[count].name, seq[count].size);
+        g += seq[count].size;
+
+        while(x < g - 1) {
+            printf("%d,", x);
+            x++;
+        }
+        printf("%d\n", x);
+        x++;
+        count++;
+    }
+
+    return 0;
+}
