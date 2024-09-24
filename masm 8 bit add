@@ -1,0 +1,25 @@
+.model small
+.data
+	num1 dw 6
+	num2 dw 3
+	result dw 0
+	msg db 'sum of two numbers is: $'
+	
+.code
+	mov ax,@data
+	mov ds,ax
+	mov ax,num1
+	add ax,num2
+	mov result,ax
+	lea dx,msg
+	mov ah,09h
+	int 21h
+	mov ax,result
+	add ax,30h
+	mov dl,al
+	mov ah,02h
+	int 21h
+	mov ah,04h
+	int 21h
+end
+	
