@@ -4,6 +4,7 @@
     num2 dw 1421h        
     result dw 0      
     msg db 'Sum of two numbers is: $'
+    zeroMsg db '0$'
 
 .code
 main proc
@@ -13,32 +14,31 @@ main proc
     mov ax, num1       
     add ax, num2      
 
-    ; Check for overflow
-    jc Overflow        ; Jump if carry (overflow occurs)
+    jc Overflow      
     
     mov result, ax     
     jmp PrintResult
 
 Overflow:
-    ; Handle overflow (you can print an error message or set a flag)
+ 
     lea dx, overflowMsg
     mov ah, 09h
     int 21h
     jmp EndProgram
 
 PrintResult:
-    ; Print the message
+   
     lea dx, msg
     mov ah, 09h
     int 21h
 
-    ; Check if result is zero
+  
     cmp ax, 0
-    je PrintZero      ; Jump to PrintZero if result is zero
+    je PrintZero      
 
     mov ax, result
     call PrintNumber
-    jmp EndProgram     ; Jump to end after printing number
+    jmp EndProgram    
 
 PrintZero:
     lea dx, zeroMsg
@@ -72,6 +72,6 @@ PrintLoop:
     ret
 PrintNumber endp
 
-; Define overflow message
+
 overflowMsg db 'Overflow occurred!$'
 end main
