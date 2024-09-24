@@ -1,0 +1,77 @@
+.model small
+.data
+    num1 dw 1034h       
+    num2 dw 1421h        
+    result dw 0      
+    msg db 'Sum of two numbers is: $'
+
+.code
+main proc
+    mov ax, @data
+    mov ds, ax
+   
+    mov ax, num1       
+    add ax, num2      
+
+    ; Check for overflow
+    jc Overflow        ; Jump if carry (overflow occurs)
+    
+    mov result, ax     
+    jmp PrintResult
+
+Overflow:
+    ; Handle overflow (you can print an error message or set a flag)
+    lea dx, overflowMsg
+    mov ah, 09h
+    int 21h
+    jmp EndProgram
+
+PrintResult:
+    ; Print the message
+    lea dx, msg
+    mov ah, 09h
+    int 21h
+
+    ; Check if result is zero
+    cmp ax, 0
+    je PrintZero      ; Jump to PrintZero if result is zero
+
+    mov ax, result
+    call PrintNumber
+    jmp EndProgram     ; Jump to end after printing number
+
+PrintZero:
+    lea dx, zeroMsg
+    mov ah, 09h
+    int 21h
+
+EndProgram:
+    mov ah, 4Ch
+    int 21h
+main endp
+
+PrintNumber proc
+    xor cx, cx         
+    mov bx, 10         
+
+ConvertLoop:
+    xor dx, dx        
+    div bx              
+    push dx            
+    inc cx              
+    test ax, ax        
+    jnz ConvertLoop   
+
+PrintLoop:
+    pop dx            
+    add dl, '0'        
+    mov ah, 02h        
+    int 21h            
+    loop PrintLoop     
+
+    ret
+PrintNumber endp
+
+; Define overflow message
+overflowMsg db 'Overflow occurred!$'
+end main
