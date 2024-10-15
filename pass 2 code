@@ -68,13 +68,25 @@ int main() {
         char objectCode[20] = "";
         operandValue = 0;
 
+        int isFormat4 = (mnemonic[0] == '+');  
+        if (isFormat4) {
+            memmove(mnemonic, mnemonic + 1, strlen(mnemonic));  
+        }
+
         if (strcmp(mnemonic, "BYTE") == 0 || strcmp(mnemonic, "WORD") == 0) {
             operandValue = (strcmp(mnemonic, "BYTE") == 0) ? handleConstant(operand) : atoi(operand);
             sprintf(objectCode, "%06X", operandValue);
         } else if (strcmp(mnemonic, "RESB") != 0 && strcmp(mnemonic, "RESW") != 0) {
             machineCode = lookup(mnemonic, opcodeTable, opcodeTableSize, symbolTable, symbolTableSize);
             operandValue = lookup(operand, opcodeTable, opcodeTableSize, symbolTable, symbolTableSize);
-            if (machineCode != -1) sprintf(objectCode, "%02X%04X", machineCode, operandValue);
+            
+            if (machineCode != -1) {
+                if (isFormat4) {
+                    sprintf(objectCode, "%02X%06X", machineCode + 1, operandValue);  
+                } else {
+                    sprintf(objectCode, "%02X%04X", machineCode, operandValue);  
+                }
+            }
         }
 
         fprintf(outputFile, "%-8s %-10s %-10s %-8s %-10s\n", locctr, label, mnemonic, operand, objectCode);
