@@ -51,7 +51,7 @@ int main() {
     int symbolTableSize = loadTable("symtab.txt", symbolTable, "%s %x");
 
     FILE *intermediateFile = fopen("intermediate.txt", "r");
-    FILE *outputFile = fopen("output.lst", "w");
+    FILE *outputFile = fopen("output.txt", "w");
     FILE *objectFile = fopen("object.txt", "w");
 
     char locctr[10], length[10], label[10], mnemonic[10], operand[10], textRecord[100] = "";
