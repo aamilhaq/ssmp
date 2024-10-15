@@ -1,0 +1,102 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+#define MAX_RECORD_LENGTH 60
+
+struct Opcode {
+    char mnemonic[10];
+    int machineCode;
+};
+
+struct Symbol {
+    char label[10];
+    int address;
+};
+
+int lookup(char *key, struct Opcode opcodeTable[], int opcodeSize, struct Symbol symbolTable[], int symbolSize) {
+    for (int i = 0; i < opcodeSize; i++)
+        if (strcmp(key, opcodeTable[i].mnemonic) == 0)
+            return opcodeTable[i].machineCode;
+    for (int i = 0; i < symbolSize; i++)
+        if (strcmp(key, symbolTable[i].label) == 0)
+            return symbolTable[i].address;
+    return -1;
+}
+
+int loadTable(const char *filename, void *table, char *format) {
+    FILE *file = fopen(filename, "r");
+    if (!file) return -1;
+    int count = 0;
+    while (fscanf(file, format, ((struct Opcode *)table)[count].mnemonic, &((struct Opcode *)table)[count].machineCode) != EOF)
+        count++;
+    fclose(file);
+    return count;
+}
+
+int handleConstant(char *operand) {
+    return operand[0] == 'C' ? operand[2] : (int)strtol(&operand[2], NULL, 16);
+}
+
+void writeTextRecord(FILE *objectFile, int start, int length, char *text) {
+    if (length > 0)
+        fprintf(objectFile, "T^%06X^%02X^%s\n", start, length / 2, text);
+}
+
+int main() {
+    struct Opcode opcodeTable[100];
+    struct Symbol symbolTable[100];
+
+    int opcodeTableSize = loadTable("optab.txt", opcodeTable, "%s %x");
+    int symbolTableSize = loadTable("symtab.txt", symbolTable, "%s %x");
+
+    FILE *intermediateFile = fopen("intermediate.txt", "r");
+    FILE *outputFile = fopen("output.lst", "w");
+    FILE *objectFile = fopen("object.txt", "w");
+
+    char locctr[10], length[10], label[10], mnemonic[10], operand[10], textRecord[100] = "";
+    int machineCode, operandValue, startAddr = 0, programLength = 0, textStart = 0, textLen = 0;
+    
+    fprintf(outputFile, "Address  Label       Mnemonic   Operand   Object Code\n");
+    fprintf(outputFile, "----------------------------------------------------\n");
+
+    fscanf(intermediateFile, "%s %s %s %s %s", locctr, length, label, mnemonic, operand);
+    sscanf(operand, "%x", &startAddr);
+    fprintf(objectFile, "H^%-6s^%06X^%06X\n", label, startAddr, programLength);
+
+    while (fscanf(intermediateFile, "%s %s %s %s %s", locctr, length, label, mnemonic, operand) != EOF) {
+        char objectCode[20] = "";
+        operandValue = 0;
+
+        if (strcmp(mnemonic, "BYTE") == 0 || strcmp(mnemonic, "WORD") == 0) {
+            operandValue = (strcmp(mnemonic, "BYTE") == 0) ? handleConstant(operand) : atoi(operand);
+            sprintf(objectCode, "%06X", operandValue);
+        } else if (strcmp(mnemonic, "RESB") != 0 && strcmp(mnemonic, "RESW") != 0) {
+            machineCode = lookup(mnemonic, opcodeTable, opcodeTableSize, symbolTable, symbolTableSize);
+            operandValue = lookup(operand, opcodeTable, opcodeTableSize, symbolTable, symbolTableSize);
+            if (machineCode != -1) sprintf(objectCode, "%02X%04X", machineCode, operandValue);
+        }
+
+        fprintf(outputFile, "%-8s %-10s %-10s %-8s %-10s\n", locctr, label, mnemonic, operand, objectCode);
+
+        if (textLen == 0) textStart = strtol(locctr, NULL, 16);
+        strcat(textRecord, objectCode);
+        textLen += strlen(objectCode);
+
+        if (textLen >= MAX_RECORD_LENGTH) {
+            writeTextRecord(objectFile, textStart, textLen, textRecord);
+            textLen = 0;
+            strcpy(textRecord, "");
+        }
+    }
+
+    writeTextRecord(objectFile, textStart, textLen, textRecord);
+    fprintf(objectFile, "E^%06X\n", startAddr);
+
+    fclose(intermediateFile);
+    fclose(outputFile);
+    fclose(objectFile);
+
+    printf("Assembly listing and object program generated successfully.\n");
+    return 0;
+}
