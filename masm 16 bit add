@@ -1,77 +1,37 @@
-.model small
+.model small // declares that the program uses the small memory model.
 .data
-    num1 dw 1034h       
-    num2 dw 1421h        
-    result dw 0      
-    msg db 'Sum of two numbers is: $'
-    zeroMsg db '0$'
-
 .code
-main proc
-    mov ax, @data
-    mov ds, ax
-   
-    mov ax, num1       
-    add ax, num2      
+mov ax, @data
+mov ds, ax
 
-    jc Overflow      
-    
-    mov result, ax     
-    jmp PrintResult
+mov ax,853Ah
+mov bx,2111h
+add ax,bx
 
-Overflow:
- 
-    lea dx, overflowMsg
-    mov ah, 09h
-    int 21h
-    jmp EndProgram
+mov cx, 04h
+mov dx,0h
+digit:
+mov bx,10h
+div bx
+push dx
+xor dx,dx
+loop digit
 
-PrintResult:
-   
-    lea dx, msg
-    mov ah, 09h
-    int 21h
+mov cx, 04h
 
-  
-    cmp ax, 0
-    je PrintZero      
+print:
+pop dx
+cmp dx,0ah
+jge alpha
+add dx, 30h
+jmp display
+alpha:
+add dx, 37h
+display:
+mov ah, 02h
+int 21h
+loop print
 
-    mov ax, result
-    call PrintNumber
-    jmp EndProgram    
-
-PrintZero:
-    lea dx, zeroMsg
-    mov ah, 09h
-    int 21h
-
-EndProgram:
-    mov ah, 4Ch
-    int 21h
-main endp
-
-PrintNumber proc
-    xor cx, cx         
-    mov bx, 10         
-
-ConvertLoop:
-    xor dx, dx        
-    div bx              
-    push dx            
-    inc cx              
-    test ax, ax        
-    jnz ConvertLoop   
-
-PrintLoop:
-    pop dx            
-    add dl, '0'        
-    mov ah, 02h        
-    int 21h            
-    loop PrintLoop     
-
-    ret
-PrintNumber endp
-
-
-overflowMsg db 'Overflow occurred!$'
-end main
+mov ah, 4ch
+int 21h
+end
