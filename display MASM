@@ -1,0 +1,33 @@
+.model small
+.stack 100h
+
+.data
+    msg db 'Hello, my name is aamil', 0 ;
+
+.code
+main:
+    ; 
+    mov ax, @data
+    mov ds, ax
+
+    ; 
+    call display
+    
+    ; 
+    mov ah, 4Ch
+    int 21h
+
+; 
+display:
+    mov si, offset msg       ; 
+   loop1:
+        mov al, [si]         ;
+        cmp al, 0            ; 
+        je done      ; 
+        mov ah, 0Eh          ; 
+        int 10h              ; 
+        inc si               ; 
+        jmp loop1     ; 
+    done:
+        ret
+end main
