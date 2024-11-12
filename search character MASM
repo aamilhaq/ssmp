@@ -1,0 +1,59 @@
+.MODEL SMALL
+.STACK 100H
+.DATA
+    ; Define the string and messages
+    inputString DB 'HELLO WORLD$', 0      ;
+    promptMsg   DB 'Enter character to search: $'
+    foundMsg    DB 'Character found in the string! $'
+    notFoundMsg DB 'Character not found in the string! $'
+
+    ; 
+    searchChar DB ?
+
+.CODE
+MAIN PROC
+    MOV AX, @DATA        ;
+    MOV DS, AX
+
+    ; Display prompt message
+    LEA DX, promptMsg
+    MOV AH, 09H
+    INT 21H
+
+    ; Take input character from user
+    MOV AH, 01H          ; 
+    INT 21H
+    MOV searchChar, AL   ; 
+    ; 
+    LEA SI, inputString  ; 
+
+search_loop:
+    MOV AL, [SI]         ; 
+    CMP AL, '$'          ; 
+    JE not_found         ; 
+
+    CMP AL, searchChar   ; 
+    JE found             ; 
+
+    INC SI               ; 
+    JMP search_loop      ; 
+
+found:
+    ; 
+    LEA DX, foundMsg
+    MOV AH, 09H
+    INT 21H
+    JMP exit_program
+
+not_found:
+    ;
+    LEA DX, notFoundMsg
+    MOV AH, 09H
+    INT 21H
+
+exit_program:
+    MOV AH, 4CH; 
+    INT 21H
+
+MAIN ENDP
+END MAIN
